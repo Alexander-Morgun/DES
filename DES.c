@@ -2,13 +2,13 @@
 #include "stdint.h"
 
 
-extern void demo(uint8_t[], size_t);
+extern void DES_encrypt(uint8_t[], size_t);
 
 int main()
 {
     uint8_t data[] = "12345";
     size_t size = 5;
-    demo(data, size);
+    DES_encrypt(data, size);
     printf("%s", data);
     return 0;
 }
