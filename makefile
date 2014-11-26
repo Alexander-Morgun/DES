@@ -12,5 +12,8 @@ compile: DES.obj Tester.obj
 DES.obj: DES.ASM
 	$(FASM_COMPILER) $(FASM_COMPILER_KEYS) DES.ASM
     
-Tester.obj: DES.c
-	$(COMPILER) $(GCC_KEYS) $(GCC_LINKER_KEYS) DES.c -o Tester.obj
+Tester.obj: DES.h Tester.c
+	$(COMPILER) $(GCC_KEYS) $(GCC_LINKER_KEYS) Tester.c -o Tester.obj
+    
+disasm:
+	$(COMPILER) -masm=intel -S -O0 DES.c

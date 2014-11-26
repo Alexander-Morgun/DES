@@ -9,21 +9,30 @@ DES_decrypt:
 DES_encrypt:
     push    ebp
     mov ebp, esp
-label .data dword at ebp+8        ;num1 argument is now located at ebp+8
-label .size  dword at ebp+12       ;num2 argument is now is located at ebp+12
+
+label .data dword at ebp + 8
+label .size dword at ebp + 12
+label .key  dword at ebp + 16
 
     push ebx
+    push esi
     mov eax, [.data]
+    mov esi, [ebp + 8]
     mov ebx, [.size]
 @@:
-    inc byte [eax]
-    inc eax
+    call encrypt_block
     dec ebx
     jnz @b
 
+    pop esi
     pop ebx
     mov esp, ebp
     pop ebp
     retn 0
+
+encrypt_block:
+    inc byte [eax]
+    inc eax
+    ret
 
 section '.data' data readable writeable
