@@ -32,18 +32,14 @@ label .key  dword at ebp + 16
 encrypt_block:
     mov ecx, [eax]
     mov edx, [eax + 4]
-    ; bt ecx, 8
-    ; adc edx, 0
 initial_permutation:
     include 'initial_permutation.txt'
 encryption:
     ; block on esi:edi
 final_permutation:
-    ; include 'final_permutation.txt'
-    ; mov [eax], ecx
-    ; mov [eax + 4], edx
-    mov [eax], esi
-    mov [eax + 4], edi
+    include 'final_permutation.txt'
+    mov [eax], ecx
+    mov [eax + 4], edx
     add eax, block_size
     ret
 

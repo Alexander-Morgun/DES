@@ -5,7 +5,7 @@ correction = [0] * bits_in_register
 for byte in range(4):
     for bit in range(8):
        correction[byte * 8 + bit] = byte * 8 + 7 - bit
-print(correction)   
+extended_correction = correction + [i + 32 for i in correction]
 
 def is_high(number):
     return number >= bits_in_register
@@ -13,7 +13,8 @@ def is_high(number):
 def print_permutation(permutation, src_low, src_high, dst_low, dst_high, file):
     print("xor {0}, {0}".format(dst_low), file=file)
     print("xor {0}, {0}".format(dst_high), file=file)
-    for dst_bit_index, src_bit_index in enumerate(permutation):
+    corrected_permutation = [permutation[i] for i in extended_correction]
+    for dst_bit_index, src_bit_index in reversed(list(enumerate(corrected_permutation))):
         dst = [dst_low, dst_high][is_high(dst_bit_index)]
         print("shl {}, 1".format(dst), file=file)
         if is_high(src_bit_index):
@@ -21,6 +22,7 @@ def print_permutation(permutation, src_low, src_high, dst_low, dst_high, file):
             src_bit_index -= bits_in_register
         else:
             src = src_low
+        src_bit_index = correction[src_bit_index]
         print("bt {}, {}".format(src, src_bit_index), file=file)
         print("adc {}, 0".format(dst), file=file)
 
@@ -36,8 +38,8 @@ initial_permutation = (
 )
 initial_permutation = [i - 1 for i in initial_permutation]
 final_permutation = [0] * len(initial_permutation)
-for i in range(len(initial_permutation)):
-    final_permutation[initial_permutation[i]] = i
+for index, value in enumerate(initial_permutation):
+    final_permutation[value] = index
 print_permutation(initial_permutation,
                   "ecx",
                   "edx",
