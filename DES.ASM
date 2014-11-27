@@ -11,12 +11,25 @@ DES_decrypt:
 DES_encrypt:
     push    ebp
     mov ebp, esp
+    sub esp, 8 * 16
 
 label .data dword at ebp + 8
 label .size dword at ebp + 12
 label .key  dword at ebp + 16
 
     push ebx ecx edx esi edi
+    mov eax, [.key]
+    mov esi, [eax]
+    mov edi, [eax + 4]
+    include 'PC-1.txt'
+    mov ebx, ecx
+    shr ebx, 28
+    shl edx, 4
+    or edx, ebx
+    and ecx, 0xFFFFFFF
+    mov [eax], ecx
+    mov [eax + 4], edx
+    
     mov eax, [.data]
     mov ebx, [.size]
 @@:

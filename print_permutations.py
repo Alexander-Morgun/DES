@@ -10,10 +10,21 @@ extended_correction = correction + [i + 32 for i in correction]
 def is_high(number):
     return number >= bits_in_register
 
-def print_permutation(permutation, src_low, src_high, dst_low, dst_high, file):
+def print_permutation(permutation,
+                      src_low,
+                      src_high,
+                      dst_low,
+                      dst_high,
+                      file,
+                      from_memory=True, # src get from memory
+                      to_memory=True # dst would be immediately put into memory
+                      ): 
     print("xor {0}, {0}".format(dst_low), file=file)
     print("xor {0}, {0}".format(dst_high), file=file)
-    corrected_permutation = [permutation[i] for i in extended_correction]
+    if to_memory:
+        corrected_permutation = [permutation[i] for i in extended_correction[:len(permutation)]]
+    else:
+        corrected_permutation = permutation
     for dst_bit_index, src_bit_index in reversed(list(enumerate(corrected_permutation))):
         dst = [dst_low, dst_high][is_high(dst_bit_index)]
         print("shl {}, 1".format(dst), file=file)
@@ -22,7 +33,8 @@ def print_permutation(permutation, src_low, src_high, dst_low, dst_high, file):
             src_bit_index -= bits_in_register
         else:
             src = src_low
-        src_bit_index = correction[src_bit_index]
+        if from_memory:
+            src_bit_index = correction[src_bit_index]
         print("bt {}, {}".format(src, src_bit_index), file=file)
         print("adc {}, 0".format(dst), file=file)
 
@@ -40,15 +52,35 @@ initial_permutation = [i - 1 for i in initial_permutation]
 final_permutation = [0] * len(initial_permutation)
 for index, value in enumerate(initial_permutation):
     final_permutation[value] = index
+PC_1 = (
+57, 49, 41, 33, 25, 17,  9,
+ 1, 58, 50, 42, 34, 26, 18,
+10,  2, 59, 51, 43, 35, 27,
+19, 11,  3, 60, 52, 44, 36,
+63, 55, 47, 39, 31, 23, 15,
+ 7, 62, 54, 46, 38, 30, 22,
+14,  6, 61, 53, 45, 37, 29,
+21, 13,  5, 28, 20, 12,  4,
+)
+PC_1 = [i - 1 for i in PC_1]
 print_permutation(initial_permutation,
                   "ecx",
                   "edx",
                   "esi",
                   "edi",
-                  open("./initial_permutation.txt", "w"));
+                  open("./initial_permutation.txt", "w"),
+                  to_memory=False);
 print_permutation(final_permutation,
                   "esi",
                   "edi",
                   "ecx",
                   "edx",
-                  open("./final_permutation.txt", "w"));
+                  open("./final_permutation.txt", "w"),
+                  from_memory=False);
+print_permutation(PC_1,
+                  "esi",
+                  "edi",
+                  "ecx",
+                  "edx",
+                  open("./PC-1.txt", "w"),
+                  to_memory=False);
