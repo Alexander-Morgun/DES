@@ -13,25 +13,57 @@ DES_encrypt:
     mov ebp, esp
     sub esp, 8 * 16
 
-label .data dword at ebp + 8
-label .size dword at ebp + 12
-label .key  dword at ebp + 16
+label text dword at ebp + 8
+label text_size dword at ebp + 12
+label key  dword at ebp + 16
 
     push ebx ecx edx esi edi
-    mov eax, [.key]
+    mov eax, [key]
     mov esi, [eax]
     mov edi, [eax + 4]
     include 'PC-1.txt'
-    mov ebx, ecx
-    shr ebx, 28
-    shl edx, 4
-    or edx, ebx
-    and ecx, 0xFFFFFFF
-    mov [eax], ecx
-    mov [eax + 4], edx
+    ; C0 on ecx, D0 on edx
+    mov ebx, 1
+    mov eax, ebp
+    sub eax, 4
+    jmp generate_keys
+
+rotate_key_part: ;part on ecx
+    mov esi, ecx
+    shr ecx, 1
+    ror esi, 5
+    and esi, 0x8000000
+    or ecx, esi
+    ret
+ 
+rotate_key:
+    call rotate_key_part
+    xchg ecx, edx
+    call rotate_key_part
+    xchg ecx, edx
+    ret
+
+generate_keys:
+    call rotate_key
+    test ebx,0x8103 ; 1000 0001 0000 0011
+    jnz @f
+    call rotate_key
+@@:
+    include "PC-2.txt"
+    ; key on esi:edi
+    mov [eax], esi
+    mov [eax - 4], edi
+    sub eax, 8
+    shl ebx, 1
+    test ebx, 0x10000
+    jz generate_keys
     
-    mov eax, [.data]
-    mov ebx, [.size]
+    mov eax, [key] ; delete me
+    mov [eax], esi ; delete me
+    mov [eax + 4], edi ; delete me
+    
+    mov eax, [text]
+    mov ebx, [text_size]
 @@:
     call encrypt_block
     sub ebx, block_size
