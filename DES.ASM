@@ -16,6 +16,7 @@ DES_encrypt:
 label text dword at ebp + 8
 label text_size dword at ebp + 12
 label key  dword at ebp + 16
+label round_keys dword at ebp - 4
 
     push ebx ecx edx esi edi
     mov eax, [key]
@@ -24,8 +25,7 @@ label key  dword at ebp + 16
     include 'PC-1.txt'
     ; C0 on ecx, D0 on edx
     mov ebx, 1
-    mov eax, ebp
-    sub eax, 4
+    lea eax, [round_keys]
     jmp generate_keys
 
 rotate_key_part: ;part on ecx
@@ -75,14 +75,25 @@ generate_keys:
     retn 0
 
 encrypt_block:
+    push eax ebx
     mov ecx, [eax]
     mov edx, [eax + 4]
 initial_permutation:
     include 'initial_permutation.txt'
 encryption:
-    ; block on esi:edi
+    lea ebx, [round_keys]
+    ; L0 on esi, R0 on edi
+    include 'E BIT-SELECTION.txt'
+    ; E(R0) on ecx:edx
+    mov edi, [ebx]
+    mov eax, [ebx - 4]
+    xor ecx, edi
+    xor edx, eax
 final_permutation:
-    include 'final_permutation.txt'
+    ; include 'final_permutation.txt'
+    ; mov [eax], ecx
+    ; mov [eax + 4], edx
+    pop ebx eax
     mov [eax], ecx
     mov [eax + 4], edx
     add eax, block_size
