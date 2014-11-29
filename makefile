@@ -9,12 +9,15 @@ FASM_COMPILER_KEYS =
 compile: DES.obj Tester.obj
 	$(COMPILER) $(GCC_KEYS) DES.obj Tester.obj -o $(OUTPUT_FILE)
 
-DES.obj: DES.ASM permutations
+DES.obj: DES.ASM permutations S_blocks
 	$(FASM_COMPILER) $(FASM_COMPILER_KEYS) DES.ASM
     
 permutations:
 	python print_permutations.py
 
+S_blocks:
+	python print_S_blocks.py
+    
 Tester.obj: DES.h Tester.c
 	$(COMPILER) $(GCC_KEYS) $(GCC_LINKER_KEYS) Tester.c -o Tester.obj
 

@@ -7,6 +7,23 @@ public DES_decrypt as "_DES_decrypt"
 
 block_size = 8
 
+rotate_key_part: ;part on ecx
+    mov esi, ecx
+    shr ecx, 1
+    ror esi, 5
+    and esi, 0x8000000
+    or ecx, esi
+    ret
+ 
+rotate_key:
+    call rotate_key_part
+    xchg ecx, edx
+    call rotate_key_part
+    xchg ecx, edx
+    ret
+
+include "S blocks.txt"
+    
 DES_decrypt:
 DES_encrypt:
     push    ebp
@@ -25,23 +42,9 @@ label round_keys dword at ebp - 4
     include 'PC-1.txt'
     ; C0 on ecx, D0 on edx
     mov ebx, 1
+    ; lea eax, [round_keys]
     lea eax, [round_keys]
     jmp generate_keys
-
-rotate_key_part: ;part on ecx
-    mov esi, ecx
-    shr ecx, 1
-    ror esi, 5
-    and esi, 0x8000000
-    or ecx, esi
-    ret
- 
-rotate_key:
-    call rotate_key_part
-    xchg ecx, edx
-    call rotate_key_part
-    xchg ecx, edx
-    ret
 
 generate_keys:
     call rotate_key
@@ -89,6 +92,54 @@ encryption:
     mov eax, [ebx - 4]
     xor ecx, edi
     xor edx, eax
+
+    xor eax, eax
+    mov edi, edx
+    shr edi, 18
+    or al, [edi + S8]
+    
+    mov edi, edx
+    shr edi, 12
+    and edi, 111111b
+    shl eax, 4
+    or al, [edi + S7]
+
+    mov edi, edx
+    shr edi, 6
+    and edi, 111111b
+    shl eax, 4
+    or al, [edi + S6]
+
+    mov edi, edx
+    and edi, 111111b
+    shl eax, 4
+    or al, [edi + S5]
+
+    mov edi, ecx
+    shr edi, 18
+    and edi, 111111b
+    shl eax, 4
+    or al, [edi + S4]
+
+    mov edi, ecx
+    shr edi, 12
+    and edi, 111111b
+    shl eax, 4
+    or al, [edi + S3]
+
+    mov edi, ecx
+    shr edi, 6
+    and edi, 111111b
+    shl eax, 4
+    or al, [edi + S2]
+
+    mov edi, ecx
+    and edi, 111111b
+    shl eax, 4
+    or al, [edi + S1]
+    
+    ; f(R0) on eax
+    mov edx, eax
 final_permutation:
     ; include 'final_permutation.txt'
     ; mov [eax], ecx
