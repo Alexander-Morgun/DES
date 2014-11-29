@@ -33,7 +33,7 @@ DES_encrypt:
 label text dword at ebp + 8
 label text_size dword at ebp + 12
 label key  dword at ebp + 16
-label round_keys dword at ebp - 4
+label round_keys dword at ebp - 8 * 16
 
     push ebx ecx edx esi edi
     mov eax, [key]
@@ -42,9 +42,7 @@ label round_keys dword at ebp - 4
     include 'PC-1.txt'
     ; C0 on ecx, D0 on edx
     mov ebx, 1
-    ; lea eax, [round_keys]
     lea eax, [round_keys]
-    jmp generate_keys
 
 generate_keys:
     call rotate_key
@@ -55,15 +53,11 @@ generate_keys:
     include "PC-2.txt"
     ; key on esi:edi
     mov [eax], esi
-    mov [eax - 4], edi
-    sub eax, 8
+    mov [eax + 4], edi
+    add eax, 8
     shl ebx, 1
     test ebx, 0x10000
     jz generate_keys
-    
-    mov eax, [key] ; delete me
-    mov [eax], esi ; delete me
-    mov [eax + 4], edi ; delete me
     
     mov eax, [text]
     mov ebx, [text_size]
@@ -84,12 +78,14 @@ encrypt_block:
 initial_permutation:
     include 'initial_permutation.txt'
 encryption:
-    lea ebx, [round_keys]
+    mov ebx, 0
     ; L0 on esi, R0 on edi
+round:
+    push edi
     include 'E BIT-SELECTION.txt'
     ; E(R0) on ecx:edx
-    mov edi, [ebx]
-    mov eax, [ebx - 4]
+    mov edi, [round_keys + ebx]
+    mov eax, [round_keys + ebx + 4]
     xor ecx, edi
     xor edx, eax
 
@@ -138,12 +134,17 @@ encryption:
     shl eax, 4
     or al, [edi + S1]
     
-    ; f(R0) on eax
-    mov edx, eax
+    include 'P.txt'
+    xor esi, edx
+    pop edi
+    xchg esi, edi
+    
+    add ebx, 8
+    cmp ebx, 8 * 16
+    jne round
+    ; L16 on esi, R16 on edi
 final_permutation:
-    ; include 'final_permutation.txt'
-    ; mov [eax], ecx
-    ; mov [eax + 4], edx
+    include 'final_permutation.txt'
     pop ebx eax
     mov [eax], ecx
     mov [eax + 4], edx

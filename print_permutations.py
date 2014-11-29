@@ -20,9 +20,11 @@ def print_permutation(permutation,
                       to_memory=True, # dst would be immediately put into memory
                       dst_part_size = bits_in_register,
                       src_part_size = bits_in_register
-                      ): 
-    print("xor {0}, {0}".format(dst_low), file=file)
-    print("xor {0}, {0}".format(dst_high), file=file)
+                      ):
+    if len(dst_low) > 0:
+        print("xor {0}, {0}".format(dst_low), file=file)
+    if len(dst_high) > 0:
+        print("xor {0}, {0}".format(dst_high), file=file)
     if to_memory:
         corrected_permutation = [permutation[i] for i in extended_correction[:len(permutation)]]
     else:
@@ -51,9 +53,6 @@ initial_permutation = (
 63, 55, 47, 39, 31, 23, 15,  7,
 )
 initial_permutation = [i - 1 for i in initial_permutation]
-final_permutation = [0] * len(initial_permutation)
-for index, value in enumerate(initial_permutation):
-    final_permutation[value] = index
 print_permutation(initial_permutation,
                   "ecx",
                   "edx",
@@ -61,9 +60,12 @@ print_permutation(initial_permutation,
                   "edi",
                   open("./initial_permutation.txt", "w"),
                   to_memory=False);
+final_permutation = [0] * len(initial_permutation)
+for index, value in enumerate(initial_permutation):
+    final_permutation[value] = index
 print_permutation(final_permutation,
-                  "esi",
                   "edi",
+                  "esi",
                   "ecx",
                   "edx",
                   open("./final_permutation.txt", "w"),
@@ -121,7 +123,7 @@ E = (
 E = [i - 1 for i in E]
 print_permutation(E,
                   "edi",
-                  "; error",
+                  "",
                   "ecx",
                   "edx",
                   open("./E BIT-SELECTION.txt", "w"),
@@ -129,3 +131,22 @@ print_permutation(E,
                   to_memory=False,
                   src_part_size=32,
                   dst_part_size=24);
+P = (
+16,  7, 20, 21,
+29, 12, 28, 17,
+ 1, 15, 23, 26,
+ 5, 18, 31, 10,
+ 2,  8, 24, 14,
+32, 27,  3,  9,
+19, 13, 30,  6,
+22, 11,  4, 25,
+)
+P = [i - 1 for i in P]
+print_permutation(P,
+                  "eax",
+                  "",
+                  "edx",
+                  "",
+                  open("./P.txt", "w"),
+                  from_memory=False,
+                  to_memory=False)
