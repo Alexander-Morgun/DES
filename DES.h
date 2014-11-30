@@ -2,11 +2,11 @@
 #include "stdint.h"
 #include "stddef.h"
 
-extern void DES_encrypt(uint8_t data[],
+extern void DES_encrypt(void *data,
                         size_t data_size,
-                        uint8_t key[8]);
+                        void *key);
 
-extern void DES_decrypt(uint8_t data[],
+extern void DES_decrypt(void *data,
                         size_t data_size,
-                        uint8_t key[8]);
+                        void *key);
      
