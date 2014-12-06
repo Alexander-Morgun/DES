@@ -6,6 +6,9 @@ public DES_encrypt as "_DES_encrypt"
 public DES_decrypt as "_DES_decrypt"
 
 block_size = 8
+round_key_size = 8
+round_keys_number = 16
+round_keys_size = round_keys_number * round_key_size
 
 rotate_key_part: ;part on ecx
     mov esi, ecx
@@ -23,20 +26,38 @@ rotate_key:
     ret
 
 include "S blocks.txt"
-    
-DES_decrypt:
-DES_encrypt:
-    push    ebp
-    mov ebp, esp
-    sub esp, 8 * 16
 
+stack_frame_size = round_keys_size + 2 * 4
 label src dword at ebp + 8
 label dst dword at ebp + 12
 label key  dword at ebp + 16
 label text_size dword at ebp + 20
-label round_keys dword at ebp - 8 * 16
+label round_keys_begin dword at ebp - round_keys_size
+label round_keys_end dword at ebp - round_key_size
+label round_keys dword at ebp - round_keys_size - 4
+label round_keys_delta dword at ebp  - round_keys_size - 8
 
+DES_decrypt:
+    push    ebp
+    mov ebp, esp
+    sub esp, stack_frame_size
     push ebx ecx edx esi edi
+    lea eax, [round_keys_end]
+    mov [round_keys], eax
+    mov [round_keys_delta], -8
+    jmp main
+
+DES_encrypt:
+    push    ebp
+    mov ebp, esp
+    sub esp, stack_frame_size
+    push ebx ecx edx esi edi
+    lea eax, [round_keys_begin]
+    mov [round_keys], eax
+    mov [round_keys_delta], 8
+    jmp main
+
+main:
     mov eax, [src]
     mov ebx, [dst]
     mov ecx, [text_size]
@@ -54,7 +75,7 @@ label round_keys dword at ebp - 8 * 16
     include 'PC-1.txt'
     ; C0 on ecx, D0 on edx
     mov ebx, 1
-    lea eax, [round_keys]
+    mov eax, [round_keys]
 
 generate_keys:
     call rotate_key
@@ -66,7 +87,7 @@ generate_keys:
     ; key on esi:edi
     mov [eax], esi
     mov [eax + 4], edi
-    add eax, 8
+    add eax, [round_keys_delta]
     shl ebx, 1
     test ebx, 0x10000
     jz generate_keys
@@ -96,8 +117,8 @@ round:
     push edi
     include 'E BIT-SELECTION.txt'
     ; E(R0) on ecx:edx
-    mov edi, [round_keys + ebx]
-    mov eax, [round_keys + ebx + 4]
+    mov edi, [round_keys_begin + ebx]
+    mov eax, [round_keys_begin + ebx + 4]
     xor ecx, edi
     xor edx, eax
 

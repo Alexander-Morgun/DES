@@ -43,6 +43,11 @@ int main()
         for (size_t i = 0; i < block_length; ++i) {
             assert(encrypted[i] == expected_result[i]);
         }
+        uint8_t decrypted[block_length] = {0};
+        DES_decrypt(encrypted, decrypted, key, block_length);
+        for (size_t i = 0; i < block_length; ++i) {
+            assert(decrypted[i] == data[i]);
+        }        
     }
     printf("All tests passed\n");
     return 0;
