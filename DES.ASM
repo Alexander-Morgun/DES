@@ -30,12 +30,24 @@ DES_encrypt:
     mov ebp, esp
     sub esp, 8 * 16
 
-label text dword at ebp + 8
-label text_size dword at ebp + 12
+label src dword at ebp + 8
+label dst dword at ebp + 12
 label key  dword at ebp + 16
+label text_size dword at ebp + 20
 label round_keys dword at ebp - 8 * 16
 
     push ebx ecx edx esi edi
+    mov eax, [src]
+    mov ebx, [dst]
+    mov ecx, [text_size]
+@@:
+    mov edx, [eax]
+    mov [ebx], edx
+    inc eax
+    inc ebx
+    dec ecx
+    jnz @b
+    
     mov eax, [key]
     mov esi, [eax]
     mov edi, [eax + 4]
@@ -59,7 +71,7 @@ generate_keys:
     test ebx, 0x10000
     jz generate_keys
     
-    mov eax, [text]
+    mov eax, [dst]
     mov ebx, [text_size]
 @@:
     call encrypt_block

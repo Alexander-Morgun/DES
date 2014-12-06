@@ -35,12 +35,13 @@ int main()
         uint8_t key[8] = {0};
         read_block(key);
         uint8_t data[block_length] = {0};
+        uint8_t encrypted[block_length] = {0};
         read_block(data);
         uint8_t expected_result[block_length] = {0};
         read_block(expected_result);
-        DES_encrypt(data, block_length, key);
+        DES_encrypt(data, encrypted, key, block_length);
         for (size_t i = 0; i < block_length; ++i) {
-            assert(data[i] == expected_result[i]);
+            assert(encrypted[i] == expected_result[i]);
         }
     }
     printf("All tests passed\n");
