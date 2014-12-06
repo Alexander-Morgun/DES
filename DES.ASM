@@ -79,7 +79,7 @@ main:
 
 generate_keys:
     call rotate_key
-    test ebx,0x8103 ; 1000 0001 0000 0011
+    test ebx, 1000000100000011b
     jnz @f
     call rotate_key
 @@:
